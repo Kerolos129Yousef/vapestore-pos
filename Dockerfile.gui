@@ -1,0 +1,14 @@
+# بيئة لينكس لتشغيل البرنامج بعربي سليم (libgdiplus بتاعة Mono + خطوط عربية).
+# الاستخدام عن طريق السكريبت run-docker-gui.sh
+FROM mono:latest
+
+# مستودعات Debian Buster اتأرشفت -> نوجّه apt للأرشيف عشان نقدر نثبّت الخطوط
+RUN printf 'deb [trusted=yes] http://archive.debian.org/debian buster main\ndeb [trusted=yes] http://archive.debian.org/debian-security buster/updates main\n' > /etc/apt/sources.list \
+ && rm -f /etc/apt/sources.list.d/*.list \
+ && apt-get -o Acquire::Check-Valid-Until=false update \
+ && apt-get install -y --no-install-recommends libgdiplus fontconfig fonts-noto-core \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV MONO_WINFORMS_XIM_STYLE=disabled
+WORKDIR /app/VapeShopPos/bin/Release
+CMD ["mono", "VapeShopPos.exe"]

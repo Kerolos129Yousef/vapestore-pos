@@ -1,0 +1,15 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# NuGet restored packages
+packages/
+
+# Visual Studio user/cache files
+.vs/
+*.user
+*.suo
+
+# The local database and its backups (data, not source)
+*.db
+Backups/

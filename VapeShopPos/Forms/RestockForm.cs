@@ -26,12 +26,18 @@ namespace VapeShopPos.Forms
 
         private void BuildUi()
         {
-            var top = new Panel { Dock = DockStyle.Top, Height = 55, BackColor = UiTheme.PanelBg, Padding = new Padding(12) };
-            var lbl = new Label { Text = "بحث:", AutoSize = true, Location = new Point(12, 16), Font = new Font("Segoe UI", 11F) };
-            txtSearch = new TextBox { Location = new Point(70, 12), Width = 300, Font = new Font("Segoe UI", 12F) };
+            var top = new Panel { Dock = DockStyle.Top, Height = 58, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 10, 12, 8) };
+            var filterRow = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            var lbl = new Label { Text = "بحث:", AutoSize = true, Font = new Font("Segoe UI", 11F), Margin = new Padding(6, 12, 0, 0) };
+            txtSearch = new TextBox { Width = 300, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 8, 0, 0) };
             txtSearch.TextChanged += (s, e) => LoadProducts();
-            top.Controls.Add(txtSearch);
-            top.Controls.Add(lbl);
+            filterRow.Controls.AddRange(new Control[] { lbl, txtSearch });
+
+            var backRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+            backRow.Controls.Add(UiTheme.MakeBackButton(this));
+
+            top.Controls.Add(filterRow);
+            top.Controls.Add(backRow);
 
             dgv = new DataGridView
             {
@@ -49,25 +55,31 @@ namespace VapeShopPos.Forms
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "name", HeaderText = "الصنف", FillWeight = 45 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "barcode", HeaderText = "الباركود", FillWeight = 30 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "qty", HeaderText = "المخزون الحالي", FillWeight = 25 });
+            UiTheme.StyleGridHeader(dgv);
 
-            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 150, BackColor = UiTheme.PanelBg, Padding = new Padding(12) };
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 150, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 10, 12, 10) };
 
-            var lblQty = new Label { Text = "الكمية:", AutoSize = true, Location = new Point(12, 18), Font = new Font("Segoe UI", 12F) };
-            txtQty = new TextBox { Location = new Point(90, 14), Width = 120, Font = new Font("Segoe UI", 14F), Text = "1" };
+            // Inputs group on the right.
+            var inputRow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 50, AutoSize = false, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            var lblQty = new Label { Text = "الكمية:", AutoSize = true, Font = new Font("Segoe UI", 12F), Margin = new Padding(6, 14, 0, 0) };
+            txtQty = new TextBox { Width = 120, Font = new Font("Segoe UI", 14F), Text = "1", Margin = new Padding(4, 10, 24, 0) };
             txtQty.KeyPress += DigitsOnly;
+            var lblNote = new Label { Text = "ملاحظة:", AutoSize = true, Font = new Font("Segoe UI", 12F), Margin = new Padding(6, 14, 0, 0) };
+            txtNote = new TextBox { Width = 340, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 12, 0, 0) };
+            inputRow.Controls.AddRange(new Control[] { lblQty, txtQty, lblNote, txtNote });
 
-            var lblNote = new Label { Text = "ملاحظة:", AutoSize = true, Location = new Point(240, 18), Font = new Font("Segoe UI", 12F) };
-            txtNote = new TextBox { Location = new Point(320, 14), Width = 320, Font = new Font("Segoe UI", 12F) };
-
+            // Action buttons on the left.
+            var actionRow = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 66, AutoSize = false, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
             var btnRestock = UiTheme.MakeButton("➕ توريد (إضافة للمخزون)", UiTheme.Accent);
-            btnRestock.Location = new Point(12, 70); btnRestock.Width = 300; btnRestock.Height = 56;
+            btnRestock.Width = 300; btnRestock.Height = 56; btnRestock.Margin = new Padding(0, 4, 12, 4);
             btnRestock.Click += (s, e) => Apply(isDamage: false);
-
             var btnDamage = UiTheme.MakeButton("➖ تسجيل تالف", UiTheme.Danger);
-            btnDamage.Location = new Point(330, 70); btnDamage.Width = 260; btnDamage.Height = 56;
+            btnDamage.Width = 260; btnDamage.Height = 56; btnDamage.Margin = new Padding(0, 4, 12, 4);
             btnDamage.Click += (s, e) => Apply(isDamage: true);
+            actionRow.Controls.AddRange(new Control[] { btnRestock, btnDamage });
 
-            bottom.Controls.AddRange(new Control[] { lblQty, txtQty, lblNote, txtNote, btnRestock, btnDamage });
+            bottom.Controls.Add(actionRow);
+            bottom.Controls.Add(inputRow);
 
             Controls.Add(dgv);
             Controls.Add(bottom);

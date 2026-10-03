@@ -22,20 +22,26 @@ namespace VapeShopPos.Forms
 
         private void BuildUi()
         {
-            var top = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = UiTheme.PanelBg, Padding = new Padding(12) };
+            var top = new Panel { Dock = DockStyle.Top, Height = 66, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 10, 12, 8) };
+
+            // Buttons group, docked to the left.
+            var btnRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+
             var btnAdd = UiTheme.MakeButton("➕ إضافة مستخدم", UiTheme.Accent);
-            btnAdd.Location = new Point(12, 8); btnAdd.Width = 180;
+            btnAdd.Width = 180; btnAdd.Height = 46; btnAdd.Margin = new Padding(0, 4, 10, 4);
             btnAdd.Click += (s, e) => EditUser(null);
 
             var btnEdit = UiTheme.MakeButton("✏️ تعديل", UiTheme.Primary);
-            btnEdit.Location = new Point(200, 8); btnEdit.Width = 140;
+            btnEdit.Width = 140; btnEdit.Height = 46; btnEdit.Margin = new Padding(0, 4, 10, 4);
             btnEdit.Click += (s, e) => EditSelected();
 
             var btnDel = UiTheme.MakeButton("🗑️ حذف", UiTheme.Danger);
-            btnDel.Location = new Point(350, 8); btnDel.Width = 140;
+            btnDel.Width = 140; btnDel.Height = 46; btnDel.Margin = new Padding(0, 4, 10, 4);
             btnDel.Click += (s, e) => DeleteSelected();
 
-            top.Controls.AddRange(new Control[] { btnAdd, btnEdit, btnDel });
+            btnRow.Controls.Add(UiTheme.MakeBackButton(this));
+            btnRow.Controls.AddRange(new Control[] { btnAdd, btnEdit, btnDel });
+            top.Controls.Add(btnRow);
 
             dgv = new DataGridView
             {
@@ -53,6 +59,7 @@ namespace VapeShopPos.Forms
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "id", HeaderText = "#", FillWeight = 12 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "user", HeaderText = "اسم المستخدم", FillWeight = 50 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "role", HeaderText = "الصلاحية", FillWeight = 38 });
+            UiTheme.StyleGridHeader(dgv);
             dgv.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) EditSelected(); };
 
             Controls.Add(dgv);

@@ -28,36 +28,48 @@ namespace VapeShopPos.Forms
 
         private void BuildUi()
         {
-            var top = new Panel { Dock = DockStyle.Top, Height = 110, BackColor = UiTheme.PanelBg, Padding = new Padding(15) };
+            var top = new Panel { Dock = DockStyle.Top, Height = 66, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 10, 12, 8) };
 
-            var lblSearch = new Label { Text = "بحث:", AutoSize = true, Location = new Point(15, 18), Font = new Font("Segoe UI", 11F) };
-            txtSearch = new TextBox { Location = new Point(70, 14), Width = 260, Font = new Font("Segoe UI", 12F) };
+            // ---- Filter group, docked to the right (flows right-to-left under RTL) ----
+            var filterRow = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+
+            var lblSearch = new Label { Text = "بحث:", AutoSize = true, Font = new Font("Segoe UI", 11F), Margin = new Padding(6, 12, 0, 0) };
+            txtSearch = new TextBox { Width = 240, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 8, 20, 0) };
             txtSearch.TextChanged += (s, e) => LoadProducts();
 
-            var lblCat = new Label { Text = "التصنيف:", AutoSize = true, Location = new Point(360, 18), Font = new Font("Segoe UI", 11F) };
-            cboCategory = new ComboBox { Location = new Point(440, 14), Width = 200, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 12F) };
+            var lblCat = new Label { Text = "التصنيف:", AutoSize = true, Font = new Font("Segoe UI", 11F), Margin = new Padding(6, 12, 0, 0) };
+            cboCategory = new ComboBox { Width = 200, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 8, 20, 0) };
             cboCategory.SelectedIndexChanged += (s, e) => LoadProducts();
 
-            chkLowStock = new CheckBox { Text = "المخزون المنخفض فقط", AutoSize = true, Location = new Point(680, 16), Font = new Font("Segoe UI", 11F) };
+            chkLowStock = new CheckBox { Text = "المخزون المنخفض فقط", AutoSize = true, Font = new Font("Segoe UI", 11F), Margin = new Padding(4, 12, 0, 0) };
             chkLowStock.CheckedChanged += (s, e) => LoadProducts();
 
+            filterRow.Controls.AddRange(new Control[] { lblSearch, txtSearch, lblCat, cboCategory, chkLowStock });
+
+            // ---- Buttons group, docked to the left ----
+            var btnRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+
             var btnAdd = UiTheme.MakeButton("➕ إضافة صنف", UiTheme.Accent);
-            btnAdd.Location = new Point(15, 55); btnAdd.Width = 160;
+            btnAdd.Width = 160; btnAdd.Height = 46; btnAdd.Margin = new Padding(0, 4, 10, 4);
             btnAdd.Click += (s, e) => EditProduct(null);
 
             var btnEdit = UiTheme.MakeButton("✏️ تعديل", UiTheme.Primary);
-            btnEdit.Location = new Point(185, 55); btnEdit.Width = 140;
+            btnEdit.Width = 140; btnEdit.Height = 46; btnEdit.Margin = new Padding(0, 4, 10, 4);
             btnEdit.Click += (s, e) => EditSelected();
 
             var btnDelete = UiTheme.MakeButton("🗑️ حذف", UiTheme.Danger);
-            btnDelete.Location = new Point(335, 55); btnDelete.Width = 140;
+            btnDelete.Width = 140; btnDelete.Height = 46; btnDelete.Margin = new Padding(0, 4, 10, 4);
             btnDelete.Click += (s, e) => DeleteSelected();
 
             var btnCats = UiTheme.MakeButton("إدارة التصنيفات", UiTheme.PrimaryDark);
-            btnCats.Location = new Point(485, 55); btnCats.Width = 180;
+            btnCats.Width = 180; btnCats.Height = 46; btnCats.Margin = new Padding(0, 4, 10, 4);
             btnCats.Click += (s, e) => ManageCategories();
 
-            top.Controls.AddRange(new Control[] { lblSearch, txtSearch, lblCat, cboCategory, chkLowStock, btnAdd, btnEdit, btnDelete, btnCats });
+            btnRow.Controls.Add(UiTheme.MakeBackButton(this));
+            btnRow.Controls.AddRange(new Control[] { btnAdd, btnEdit, btnDelete, btnCats });
+
+            top.Controls.Add(btnRow);
+            top.Controls.Add(filterRow);
 
             dgv = new DataGridView
             {
@@ -80,6 +92,7 @@ namespace VapeShopPos.Forms
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "sale", HeaderText = "سعر البيع", FillWeight = 14 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "qty", HeaderText = "المخزون", FillWeight = 12 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "min", HeaderText = "حد التنبيه", FillWeight = 12 });
+            UiTheme.StyleGridHeader(dgv);
             dgv.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) EditSelected(); };
 
             Controls.Add(dgv);
@@ -167,10 +180,13 @@ namespace VapeShopPos.Forms
             {
                 f.Text = "التصنيفات";
                 f.StartPosition = FormStartPosition.CenterParent;
-                f.ClientSize = new Size(420, 420);
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.MaximizeBox = false;
+                f.MinimizeBox = false;
+                f.ClientSize = new Size(440, 500);
                 UiTheme.ApplyRtl(f);
 
-                var lb = new ListBox { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12F) };
+                var lb = new ListBox { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12F), IntegralHeight = false };
                 Action reload = () =>
                 {
                     lb.Items.Clear();
@@ -178,23 +194,31 @@ namespace VapeShopPos.Forms
                 };
                 reload();
 
-                var txt = new TextBox { Dock = DockStyle.Bottom, Font = new Font("Segoe UI", 12F), Height = 32 };
-                var btnAdd = UiTheme.MakeButton("إضافة تصنيف", UiTheme.Accent);
-                btnAdd.Dock = DockStyle.Bottom;
+                // Bottom area: input to add a new category + action buttons, always visible.
+                var bottom = new Panel { Dock = DockStyle.Bottom, Height = 200, Padding = new Padding(14), BackColor = UiTheme.PanelBg };
+
+                var lblNew = new Label { Text = "اسم التصنيف الجديد:", Dock = DockStyle.Top, Height = 26, Font = new Font("Segoe UI", 11F, FontStyle.Bold), ForeColor = UiTheme.Primary, TextAlign = ContentAlignment.MiddleLeft };
+                var txt = new TextBox { Dock = DockStyle.Top, Font = new Font("Segoe UI", 13F), Height = 34 };
+                var sp1 = new Panel { Dock = DockStyle.Top, Height = 10, BackColor = UiTheme.PanelBg };
+                var btnAdd = UiTheme.MakeButton("➕ إضافة تصنيف", UiTheme.Accent);
+                btnAdd.Dock = DockStyle.Top; btnAdd.Height = 46;
+                var sp2 = new Panel { Dock = DockStyle.Top, Height = 10, BackColor = UiTheme.PanelBg };
+                var btnDel = UiTheme.MakeButton("🗑️ حذف المحدد", UiTheme.Danger);
+                btnDel.Dock = DockStyle.Top; btnDel.Height = 46;
+
                 btnAdd.Click += (s, e) =>
                 {
                     if (!string.IsNullOrWhiteSpace(txt.Text))
                     {
                         ProductService.AddCategory(txt.Text.Trim());
                         txt.Clear(); reload();
+                        txt.Focus();
                     }
                 };
-                var btnDel = UiTheme.MakeButton("حذف المحدد", UiTheme.Danger);
-                btnDel.Dock = DockStyle.Bottom;
                 btnDel.Click += (s, e) =>
                 {
                     var c = lb.SelectedItem as Category;
-                    if (c == null) return;
+                    if (c == null) { MessageBox.Show("اختر تصنيفاً أولاً.", "تنبيه"); return; }
                     try
                     {
                         ProductService.DeleteCategory(c.Id);
@@ -206,10 +230,19 @@ namespace VapeShopPos.Forms
                     }
                 };
 
+                // Add in reverse so the visual order (top -> bottom) is:
+                // label, textbox, [gap], add button, [gap], delete button.
+                bottom.Controls.Add(btnDel);
+                bottom.Controls.Add(sp2);
+                bottom.Controls.Add(btnAdd);
+                bottom.Controls.Add(sp1);
+                bottom.Controls.Add(txt);
+                bottom.Controls.Add(lblNew);
+
                 f.Controls.Add(lb);
-                f.Controls.Add(btnDel);
-                f.Controls.Add(btnAdd);
-                f.Controls.Add(txt);
+                f.Controls.Add(bottom);
+                f.AcceptButton = btnAdd;   // Enter adds the typed category
+
                 f.ShowDialog(this);
                 LoadCategories();
                 LoadProducts();

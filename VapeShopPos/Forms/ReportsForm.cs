@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using VapeShopPos.Services;
@@ -15,24 +15,83 @@ namespace VapeShopPos.Forms
             MinimumSize = new Size(900, 600);
             UiTheme.ApplyRtl(this);
 
-            var tabs = new TabControl { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12F) };
-            tabs.TabPages.Add(BuildDailyTab());
-            tabs.TabPages.Add(BuildBestSellersTab());
-            tabs.TabPages.Add(BuildProfitTab());
-            tabs.TabPages.Add(BuildLowStockTab());
-            Controls.Add(tabs);
+            var host = new Panel { Dock = DockStyle.Fill, BackColor = UiTheme.Background };
+
+            var panels = new Panel[]
+            {
+                BuildDailyPanel(),
+                BuildBestSellersPanel(),
+                BuildProfitPanel(),
+                BuildLowStockPanel()
+            };
+            var titles = new[] { "ملخص المبيعات اليومي", "الأكثر مبيعاً", "الأرباح", "تنبيه المخزون المنخفض" };
+
+            foreach (var p in panels) { p.Dock = DockStyle.Fill; p.Visible = false; host.Controls.Add(p); }
+
+            // ---- Custom tab bar: buttons on the right, back button on the left ----
+            var tabBar = new Panel { Dock = DockStyle.Top, Height = 56, BackColor = UiTheme.PanelBg, Padding = new Padding(10, 9, 10, 0) };
+
+            var tabRow = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            var tabButtons = new Button[titles.Length];
+
+            Action<int> selectTab = sel =>
+            {
+                for (int i = 0; i < panels.Length; i++)
+                {
+                    bool on = (i == sel);
+                    panels[i].Visible = on;
+                    tabButtons[i].BackColor = on ? UiTheme.Primary : Color.FromArgb(223, 231, 238);
+                    tabButtons[i].ForeColor = on ? Color.White : Color.FromArgb(45, 45, 45);
+                }
+                panels[sel].BringToFront();
+            };
+
+            for (int i = 0; i < titles.Length; i++)
+            {
+                int idx = i;
+                var b = new Button
+                {
+                    Text = titles[i],
+                    Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                    FlatStyle = FlatStyle.Flat,
+                    Width = 190,
+                    Height = 42,
+                    Margin = new Padding(0, 0, 6, 0),
+                    Cursor = Cursors.Hand
+                };
+                b.FlatAppearance.BorderSize = 0;
+                b.Click += (s, e) => selectTab(idx);
+                tabButtons[i] = b;
+                tabRow.Controls.Add(b);
+            }
+
+            var backRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+            backRow.Controls.Add(UiTheme.MakeBackButton(this));
+
+            tabBar.Controls.Add(tabRow);
+            tabBar.Controls.Add(backRow);
+
+            Controls.Add(host);
+            Controls.Add(tabBar);
+
+            selectTab(0);
         }
 
         // ---------------------------------------------------------------- Daily
-        private TabPage BuildDailyTab()
+        private Panel BuildDailyPanel()
         {
-            var tab = new TabPage("ملخص المبيعات اليومي") { BackColor = UiTheme.Background };
+            var tab = new Panel { BackColor = UiTheme.Background };
 
-            var dt = new DateTimePicker { Location = new Point(20, 20), Width = 200, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 12F) };
+            var dt = new DateTimePicker { Format = DateTimePickerFormat.Short, Width = 180, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 2, 12, 2) };
             var btn = UiTheme.MakeButton("عرض", UiTheme.Primary);
-            btn.Location = new Point(240, 16); btn.Width = 120;
+            btn.Size = new Size(120, 38); btn.Margin = new Padding(4, 0, 8, 2);
+            var filter = MakeFilterBar(MakeFilterLabel("التاريخ:"), dt, btn);
 
-            var lbl = new Label { Location = new Point(20, 80), AutoSize = false, Size = new Size(600, 260), Font = new Font("Segoe UI", 14F) };
+            var content = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20), BackColor = UiTheme.Background, AutoScroll = true };
+            var card = MakeCard(260);
+            var lbl = MakeCardLabel();
+            card.Controls.Add(lbl);
+            content.Controls.Add(card);
 
             Action load = () =>
             {
@@ -46,28 +105,29 @@ namespace VapeShopPos.Forms
                     "إجمالي الخصومات: " + UiTheme.Money(s.TotalDiscount);
             };
             btn.Click += (s, e) => load();
-            tab.Controls.AddRange(new Control[] { dt, btn, lbl });
-            tab.HandleCreated += (s, e) => load();
+
+            tab.Controls.Add(content);
+            tab.Controls.Add(filter);
+            load();
             return tab;
         }
 
         // ---------------------------------------------------------------- Best sellers
-        private TabPage BuildBestSellersTab()
+        private Panel BuildBestSellersPanel()
         {
-            var tab = new TabPage("الأكثر مبيعاً") { BackColor = UiTheme.Background };
+            var tab = new Panel { BackColor = UiTheme.Background };
 
-            var dtFrom = new DateTimePicker { Location = new Point(20, 20), Width = 170, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 11F), Value = DateTime.Today.AddDays(-30) };
-            var dtTo = new DateTimePicker { Location = new Point(200, 20), Width = 170, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 11F), Value = DateTime.Today };
+            var dtFrom = new DateTimePicker { Format = DateTimePickerFormat.Short, Width = 160, Font = new Font("Segoe UI", 11F), Value = DateTime.Today.AddDays(-30), Margin = new Padding(4, 2, 12, 2) };
+            var dtTo = new DateTimePicker { Format = DateTimePickerFormat.Short, Width = 160, Font = new Font("Segoe UI", 11F), Value = DateTime.Today, Margin = new Padding(4, 2, 12, 2) };
             var btn = UiTheme.MakeButton("عرض", UiTheme.Primary);
-            btn.Location = new Point(390, 16); btn.Width = 120;
+            btn.Size = new Size(120, 38); btn.Margin = new Padding(4, 0, 8, 2);
+            var filter = MakeFilterBar(MakeFilterLabel("من:"), dtFrom, MakeFilterLabel("إلى:"), dtTo, btn);
 
             var grid = NewGrid();
+            grid.Dock = DockStyle.Fill;
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "name", HeaderText = "الصنف", FillWeight = 50 });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "qty", HeaderText = "الكمية المباعة", FillWeight = 25 });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "rev", HeaderText = "الإيراد", FillWeight = 25 });
-            grid.Location = new Point(20, 65);
-            grid.Size = new Size(820, 440);
-            grid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
 
             Action load = () =>
             {
@@ -76,22 +136,29 @@ namespace VapeShopPos.Forms
                     grid.Rows.Add(r.ProductName, r.QuantitySold, UiTheme.Money(r.Revenue));
             };
             btn.Click += (s, e) => load();
-            tab.Controls.AddRange(new Control[] { dtFrom, dtTo, btn, grid });
-            tab.HandleCreated += (s, e) => load();
+
+            tab.Controls.Add(grid);
+            tab.Controls.Add(filter);
+            load();
             return tab;
         }
 
         // ---------------------------------------------------------------- Profit
-        private TabPage BuildProfitTab()
+        private Panel BuildProfitPanel()
         {
-            var tab = new TabPage("الأرباح") { BackColor = UiTheme.Background };
+            var tab = new Panel { BackColor = UiTheme.Background };
 
-            var dtFrom = new DateTimePicker { Location = new Point(20, 20), Width = 170, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 11F), Value = DateTime.Today.AddDays(-30) };
-            var dtTo = new DateTimePicker { Location = new Point(200, 20), Width = 170, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 11F), Value = DateTime.Today };
+            var dtFrom = new DateTimePicker { Format = DateTimePickerFormat.Short, Width = 160, Font = new Font("Segoe UI", 11F), Value = DateTime.Today.AddDays(-30), Margin = new Padding(4, 2, 12, 2) };
+            var dtTo = new DateTimePicker { Format = DateTimePickerFormat.Short, Width = 160, Font = new Font("Segoe UI", 11F), Value = DateTime.Today, Margin = new Padding(4, 2, 12, 2) };
             var btn = UiTheme.MakeButton("عرض", UiTheme.Primary);
-            btn.Location = new Point(390, 16); btn.Width = 120;
+            btn.Size = new Size(120, 38); btn.Margin = new Padding(4, 0, 8, 2);
+            var filter = MakeFilterBar(MakeFilterLabel("من:"), dtFrom, MakeFilterLabel("إلى:"), dtTo, btn);
 
-            var lbl = new Label { Location = new Point(20, 80), AutoSize = false, Size = new Size(600, 200), Font = new Font("Segoe UI", 15F) };
+            var content = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20), BackColor = UiTheme.Background, AutoScroll = true };
+            var card = MakeCard(220);
+            var lbl = MakeCardLabel();
+            card.Controls.Add(lbl);
+            content.Controls.Add(card);
 
             Action load = () =>
             {
@@ -103,22 +170,24 @@ namespace VapeShopPos.Forms
                     "صافي الربح: " + UiTheme.Money(p.Profit);
             };
             btn.Click += (s, e) => load();
-            tab.Controls.AddRange(new Control[] { dtFrom, dtTo, btn, lbl });
-            tab.HandleCreated += (s, e) => load();
+
+            tab.Controls.Add(content);
+            tab.Controls.Add(filter);
+            load();
             return tab;
         }
 
         // ---------------------------------------------------------------- Low stock
-        private TabPage BuildLowStockTab()
+        private Panel BuildLowStockPanel()
         {
-            var tab = new TabPage("تنبيه المخزون المنخفض") { BackColor = UiTheme.Background };
+            var tab = new Panel { BackColor = UiTheme.Background };
 
             var grid = NewGrid();
+            grid.Dock = DockStyle.Fill;
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "name", HeaderText = "الصنف", FillWeight = 45 });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "cat", HeaderText = "التصنيف", FillWeight = 25 });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "qty", HeaderText = "المخزون", FillWeight = 15 });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "min", HeaderText = "حد التنبيه", FillWeight = 15 });
-            grid.Dock = DockStyle.Fill;
 
             Action load = () =>
             {
@@ -130,13 +199,63 @@ namespace VapeShopPos.Forms
                 }
             };
             tab.Controls.Add(grid);
-            tab.HandleCreated += (s, e) => load();
+            load();
             return tab;
+        }
+
+        // ---------------------------------------------------------------- Shared UI helpers
+        private FlowLayoutPanel MakeFilterBar(params Control[] controls)
+        {
+            var f = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 64,
+                BackColor = Color.FromArgb(234, 242, 248),
+                Padding = new Padding(15, 12, 15, 8),
+                WrapContents = true,
+                FlowDirection = FlowDirection.LeftToRight
+            };
+            f.Controls.AddRange(controls);
+            return f;
+        }
+
+        private Label MakeFilterLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                ForeColor = UiTheme.Primary,
+                Margin = new Padding(8, 10, 0, 2)
+            };
+        }
+
+        private Panel MakeCard(int height)
+        {
+            return new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = height,
+                BackColor = UiTheme.PanelBg,
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(22)
+            };
+        }
+
+        private Label MakeCardLabel()
+        {
+            // RightToLeft is inherited, so default TopLeft alignment renders on the right.
+            return new Label
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 15F)
+            };
         }
 
         private DataGridView NewGrid()
         {
-            return new DataGridView
+            var g = new DataGridView
             {
                 AllowUserToAddRows = false,
                 ReadOnly = true,
@@ -147,6 +266,8 @@ namespace VapeShopPos.Forms
                 Font = new Font("Segoe UI", 11F),
                 RowTemplate = { Height = 32 }
             };
+            UiTheme.StyleGridHeader(g);
+            return g;
         }
     }
 }

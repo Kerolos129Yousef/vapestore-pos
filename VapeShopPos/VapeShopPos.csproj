@@ -12,7 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <ApplicationIcon />
+    <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -67,6 +67,7 @@
     <Compile Include="Services\ShiftService.cs" />
     <Compile Include="Services\StocktakeService.cs" />
     <Compile Include="Services\ReportService.cs" />
+    <Compile Include="Services\InvoiceService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Services\BackupService.cs" />
     <Compile Include="Forms\UiTheme.cs" />
@@ -77,6 +78,9 @@
     <Compile Include="Forms\RestockForm.cs" />
     <Compile Include="Forms\SalesForm.cs" />
     <Compile Include="Forms\ShiftForm.cs" />
+    <Compile Include="Forms\ShiftDetailsForm.cs" />
+    <Compile Include="Forms\InvoiceDetailsForm.cs" />
+    <Compile Include="Forms\InvoicesForm.cs" />
     <Compile Include="Forms\StocktakeForm.cs" />
     <Compile Include="Forms\ReportsForm.cs" />
     <Compile Include="Forms\UsersForm.cs" />

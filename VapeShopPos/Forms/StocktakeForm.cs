@@ -26,13 +26,19 @@ namespace VapeShopPos.Forms
 
         private void BuildUi()
         {
-            var top = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = UiTheme.PanelBg, Padding = new Padding(12) };
+            var top = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 8, 12, 8) };
             var title = new Label
             {
                 Text = "أدخل الكمية الفعلية المعدودة لكل صنف، ثم اضغط تأكيد الجرد.",
-                AutoSize = true, Location = new Point(12, 18), Font = new Font("Segoe UI", 11F)
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,   // renders on the right under RTL
+                Font = new Font("Segoe UI", 11F)
             };
+            var backRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+            backRow.Controls.Add(UiTheme.MakeBackButton(this));
+
             top.Controls.Add(title);
+            top.Controls.Add(backRow);
 
             dgv = new DataGridView
             {
@@ -50,6 +56,22 @@ namespace VapeShopPos.Forms
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "theoretical", HeaderText = "النظري", ReadOnly = true, FillWeight = 14 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "counted", HeaderText = "الفعلي (المعدود)", FillWeight = 16 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "variance", HeaderText = "الفرق", ReadOnly = true, FillWeight = 14 });
+            UiTheme.StyleGridHeader(dgv);
+
+            // Single click starts editing the counted column directly.
+            dgv.EditMode = DataGridViewEditMode.EditOnEnter;
+
+            // Make the editable "counted" column stand out as an input field.
+            var countedCol = dgv.Columns["counted"];
+            countedCol.HeaderText = "✏️ الفعلي (المعدود)";
+            countedCol.DefaultCellStyle.BackColor = Color.FromArgb(255, 249, 196);
+            countedCol.DefaultCellStyle.ForeColor = Color.FromArgb(30, 30, 30);
+            countedCol.DefaultCellStyle.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            countedCol.DefaultCellStyle.SelectionBackColor = Color.FromArgb(255, 235, 120);
+            countedCol.DefaultCellStyle.SelectionForeColor = Color.Black;
+            countedCol.HeaderCell.Style.BackColor = UiTheme.Accent;
+            countedCol.HeaderCell.Style.ForeColor = Color.White;
+
             dgv.CellEndEdit += Dgv_CellEndEdit;
             dgv.EditingControlShowing += (s, e) =>
             {
@@ -60,17 +82,26 @@ namespace VapeShopPos.Forms
                 }
             };
 
-            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 120, BackColor = UiTheme.PanelBg, Padding = new Padding(12) };
-            var lblNote = new Label { Text = "ملاحظة الجرد:", AutoSize = true, Location = new Point(12, 16), Font = new Font("Segoe UI", 11F) };
-            txtNote = new TextBox { Location = new Point(130, 12), Width = 400, Font = new Font("Segoe UI", 12F) };
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 120, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 10, 12, 10) };
 
-            lblSummary = new Label { AutoSize = true, Location = new Point(12, 55), Font = new Font("Segoe UI", 11F, FontStyle.Bold) };
-
+            // Confirm button on the left.
+            var actionRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
             var btnConfirm = UiTheme.MakeButton("✓ تأكيد الجرد وتسوية المخزون", UiTheme.Accent);
-            btnConfirm.Location = new Point(560, 12); btnConfirm.Width = 300; btnConfirm.Height = 90;
+            btnConfirm.Width = 300; btnConfirm.Height = 92; btnConfirm.Margin = new Padding(0, 2, 12, 2);
             btnConfirm.Click += (s, e) => Confirm();
+            actionRow.Controls.Add(btnConfirm);
 
-            bottom.Controls.AddRange(new Control[] { lblNote, txtNote, lblSummary, btnConfirm });
+            // Note input on the right.
+            var noteRow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            var lblNote = new Label { Text = "ملاحظة الجرد:", AutoSize = true, Font = new Font("Segoe UI", 11F), Margin = new Padding(6, 14, 0, 0) };
+            txtNote = new TextBox { Width = 400, Font = new Font("Segoe UI", 12F), Margin = new Padding(4, 10, 0, 0) };
+            noteRow.Controls.AddRange(new Control[] { lblNote, txtNote });
+
+            lblSummary = new Label { Dock = DockStyle.Top, Height = 30, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 11F, FontStyle.Bold) };
+
+            bottom.Controls.Add(lblSummary);
+            bottom.Controls.Add(noteRow);
+            bottom.Controls.Add(actionRow);
 
             Controls.Add(dgv);
             Controls.Add(bottom);

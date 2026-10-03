@@ -38,13 +38,26 @@ namespace VapeShopPos.Forms
                 ForeColor = Color.White,
                 AutoSize = false,
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleRight,
-                Padding = new Padding(20, 0, 0, 0)
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(0, 0, 20, 0)
             };
             var btnLogout = UiTheme.MakeButton("تسجيل خروج", UiTheme.PrimaryDark);
-            btnLogout.Dock = DockStyle.Right;
+            btnLogout.Dock = DockStyle.Left;
             btnLogout.Width = 150;
-            btnLogout.Click += (s, e) => { LogoutRequested = true; Close(); };
+            btnLogout.Click += (s, e) =>
+            {
+                var answer = MessageBox.Show(
+                    "هل تريد تسجيل الخروج؟",
+                    "تأكيد الخروج",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+                if (answer == DialogResult.Yes)
+                {
+                    LogoutRequested = true;
+                    Close();
+                }
+            };
             top.Controls.Add(lblTitle);
             top.Controls.Add(btnLogout);
 
@@ -73,6 +86,7 @@ namespace VapeShopPos.Forms
 
             AddTile("💰 شاشة البيع (POS)", UiTheme.Accent, OpenSales);
             AddTile("🕒 الورديات", UiTheme.Primary, OpenShift);
+            AddTile("🧾 الفواتير", UiTheme.Primary, OpenInvoices);
 
             if (mgr)
             {
@@ -135,6 +149,7 @@ namespace VapeShopPos.Forms
         private void OpenRestock() { using (var f = new RestockForm()) f.ShowDialog(this); }
         private void OpenStocktake() { using (var f = new StocktakeForm()) f.ShowDialog(this); }
         private void OpenReports() { using (var f = new ReportsForm()) f.ShowDialog(this); }
+        private void OpenInvoices() { using (var f = new InvoicesForm()) f.ShowDialog(this); }
         private void OpenUsers() { using (var f = new UsersForm()) f.ShowDialog(this); }
 
         private void DoBackup()

@@ -123,6 +123,33 @@ namespace VapeShopPos.Services
             return list;
         }
 
+        /// <summary>All invoices belonging to a shift, newest first.</summary>
+        public static List<Invoice> GetShiftInvoices(long shiftId)
+        {
+            var list = new List<Invoice>();
+            using (var conn = Database.GetConnection())
+            using (var cmd = new SQLiteCommand(
+                @"SELECT id, datetime, subtotal, discount, total, payment_method, shift_id, user_id
+                  FROM invoices WHERE shift_id=@id ORDER BY id DESC;", conn))
+            {
+                cmd.Parameters.AddWithValue("@id", shiftId);
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read())
+                        list.Add(new Invoice
+                        {
+                            Id = r.GetInt64(0),
+                            DateTime = DateTime.Parse(r.GetString(1), CultureInfo.InvariantCulture),
+                            Subtotal = Convert.ToDecimal(r.GetValue(2)),
+                            Discount = Convert.ToDecimal(r.GetValue(3)),
+                            Total = Convert.ToDecimal(r.GetValue(4)),
+                            PaymentMethod = r.GetString(5),
+                            ShiftId = r.GetInt64(6),
+                            UserId = r.GetInt64(7)
+                        });
+            }
+            return list;
+        }
+
         private static decimal ScalarDecimal(string sql, long id)
         {
             using (var conn = Database.GetConnection())

@@ -47,6 +47,38 @@ namespace VapeShopPos.Forms
             return b;
         }
 
+        /// <summary>
+        /// Applies the shared table header look used across the app: a solid primary-blue
+        /// header row with bold, centered white text and a comfortable height.
+        /// </summary>
+        public static void StyleGridHeader(DataGridView dgv)
+        {
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgv.ColumnHeadersHeight = 42;
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Primary;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Primary;
+        }
+
+        /// <summary>
+        /// A "back to main menu" button that simply closes the given screen
+        /// (every screen is opened as a dialog from the main menu).
+        /// </summary>
+        public static Button MakeBackButton(Form owner)
+        {
+            var b = MakeButton("← رجوع للرئيسية", PrimaryDark);
+            b.Width = 170;
+            b.Height = 42;
+            b.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            b.Padding = new Padding(0);
+            b.Margin = new Padding(0, 0, 10, 0);
+            b.Click += (s, e) => owner.Close();
+            return b;
+        }
+
         /// <summary>Formats a decimal as Egyptian Pounds, e.g. "150.00 ج.م".</summary>
         public static string Money(decimal value)
         {

@@ -19,6 +19,7 @@ namespace VapeShopPos.Models
         public string PaymentMethod { get; set; }
         public long ShiftId { get; set; }
         public long UserId { get; set; }
+        public string UserName { get; set; }   // cashier username, for display in lists
 
         public List<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
     }

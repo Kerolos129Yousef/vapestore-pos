@@ -45,17 +45,60 @@ namespace VapeShopPos.Forms
             UiTheme.ApplyRtl(this);
 
             // ---- Scan / search bar ----
-            var topPanel = new Panel { Dock = DockStyle.Top, Height = 90, BackColor = UiTheme.PanelBg, Padding = new Padding(15) };
+            var topPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(234, 242, 248),
+                Padding = new Padding(18, 12, 18, 12)
+            };
+
             var lblScan = new Label
             {
-                Text = "امسح الباركود أو اكتب اسم الصنف ثم Enter:",
+                Text = "امسح الباركود أو اكتب اسم الصنف ثم اضغط Enter",
                 Dock = DockStyle.Top,
-                Height = 24,
-                Font = new Font("Segoe UI", 10F)
+                Height = 32,
+                Font = new Font("Segoe UI", 13F, FontStyle.Bold),
+                ForeColor = UiTheme.Primary,
+                TextAlign = ContentAlignment.MiddleLeft
             };
-            txtScan = new TextBox { Dock = DockStyle.Top, Font = new Font("Segoe UI", 16F), Height = 40 };
+
+            var spacer = new Panel { Dock = DockStyle.Top, Height = 8, BackColor = Color.Transparent };
+
+            // Colored accent border around the input so it reads as the primary field.
+            var fieldBorder = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 52,
+                BackColor = UiTheme.Accent,
+                Padding = new Padding(2)
+            };
+            var fieldInner = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, Padding = new Padding(12, 0, 6, 0) };
+
+            var lblIcon = new Label
+            {
+                Text = "🔍",
+                Dock = DockStyle.Right,
+                Width = 48,
+                Font = new Font("Segoe UI", 18F),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.White,
+                ForeColor = UiTheme.Primary
+            };
+
+            txtScan = new TextBox
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 22F),
+                BorderStyle = BorderStyle.None
+            };
             txtScan.KeyDown += TxtScan_KeyDown;
-            topPanel.Controls.Add(txtScan);
+
+            fieldInner.Controls.Add(txtScan);
+            fieldInner.Controls.Add(lblIcon);
+            fieldBorder.Controls.Add(fieldInner);
+
+            topPanel.Controls.Add(fieldBorder);
+            topPanel.Controls.Add(spacer);
             topPanel.Controls.Add(lblScan);
 
             // ---- Cart grid ----
@@ -73,6 +116,7 @@ namespace VapeShopPos.Forms
                 Font = new Font("Segoe UI", 12F),
                 RowTemplate = { Height = 38 }
             };
+            UiTheme.StyleGridHeader(dgv);
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "name", HeaderText = "الصنف", ReadOnly = true, FillWeight = 40 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "price", HeaderText = "السعر", ReadOnly = true, FillWeight = 18 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "qty", HeaderText = "الكمية", FillWeight = 18 });
@@ -84,48 +128,73 @@ namespace VapeShopPos.Forms
             };
 
             // ---- Bottom: totals + actions ----
-            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 200, BackColor = UiTheme.PanelBg, Padding = new Padding(15) };
+            var bottom = new Panel { Dock = DockStyle.Fill, BackColor = UiTheme.PanelBg, Padding = new Padding(15) };
 
-            lblSubtotal = new Label { Text = "المجموع: 0.00 ج.م", AutoSize = true, Location = new Point(20, 15), Font = new Font("Segoe UI", 12F) };
+            // Right column: subtotal, discount, payment, then the big final total on its
+            // own row at the bottom (nothing beside it, so the large text never overlaps).
+            lblSubtotal = new Label { Text = "المجموع: 0.00 ج.م", AutoSize = true, Location = new Point(20, 12), Font = new Font("Segoe UI", 12F) };
 
-            var lblDisc = new Label { Text = "الخصم:", AutoSize = true, Location = new Point(20, 55), Font = new Font("Segoe UI", 12F) };
-            txtDiscount = new TextBox { Location = new Point(90, 52), Width = 120, Font = new Font("Segoe UI", 12F), Text = "0" };
+            var lblDisc = new Label { Text = "الخصم:", AutoSize = true, Location = new Point(20, 54), Font = new Font("Segoe UI", 12F) };
+            txtDiscount = new TextBox { Location = new Point(90, 51), Width = 120, Font = new Font("Segoe UI", 12F), Text = "0" };
             txtDiscount.TextChanged += (s, e) => Recalculate();
             txtDiscount.KeyPress += DecimalOnly;
+
+            rbCash = new RadioButton { Text = "نقدي 💵", Checked = true, AutoSize = true, Location = new Point(20, 90), Font = new Font("Segoe UI", 12F) };
+            rbCard = new RadioButton { Text = "بطاقة 💳", AutoSize = true, Location = new Point(140, 90), Font = new Font("Segoe UI", 12F) };
 
             lblTotal = new Label
             {
                 Text = "الإجمالي النهائي: 0.00 ج.م",
                 AutoSize = true,
-                Location = new Point(20, 95),
+                Location = new Point(20, 132),
                 Font = UiTheme.BigTotalFont,
                 ForeColor = UiTheme.Accent
             };
 
-            rbCash = new RadioButton { Text = "نقدي 💵", Checked = true, AutoSize = true, Location = new Point(20, 150), Font = new Font("Segoe UI", 12F) };
-            rbCard = new RadioButton { Text = "بطاقة 💳", AutoSize = true, Location = new Point(140, 150), Font = new Font("Segoe UI", 12F) };
-
+            // Middle column: remove / clear buttons (top of the panel).
             var btnRemove = UiTheme.MakeButton("حذف الصنف المحدد", UiTheme.Danger);
             btnRemove.Size = new Size(200, 48);
-            btnRemove.Location = new Point(300, 50);
+            btnRemove.Location = new Point(300, 12);
             btnRemove.Click += (s, e) => RemoveSelected();
 
             var btnClear = UiTheme.MakeButton("إلغاء الفاتورة", UiTheme.PrimaryDark);
             btnClear.Size = new Size(200, 48);
-            btnClear.Location = new Point(300, 105);
+            btnClear.Location = new Point(300, 68);
             btnClear.Click += (s, e) => ClearCart();
 
+            // Left column: large checkout button.
             var btnCheckout = UiTheme.MakeButton("إتمام البيع (F2)", UiTheme.Accent);
             btnCheckout.Size = new Size(260, 110);
-            btnCheckout.Location = new Point(520, 50);
+            btnCheckout.Location = new Point(520, 12);
             btnCheckout.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             btnCheckout.Click += (s, e) => Checkout();
 
             bottom.Controls.AddRange(new Control[] { lblSubtotal, lblDisc, txtDiscount, lblTotal, rbCash, rbCard, btnRemove, btnClear, btnCheckout });
 
-            Controls.Add(dgv);
-            Controls.Add(bottom);
-            Controls.Add(topPanel);
+            // Fixed 3-row layout: scan bar (top), cart grid (fills), totals+actions (bottom).
+            // Using a TableLayoutPanel guarantees the grid always gets the correct height
+            // and never appears cut off, regardless of window size or maximize timing.
+            var root = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 200F));
+            root.Controls.Add(topPanel, 0, 0);
+            root.Controls.Add(dgv, 0, 1);
+            root.Controls.Add(bottom, 0, 2);
+
+            var backBar = new Panel { Dock = DockStyle.Top, Height = 52, BackColor = UiTheme.PanelBg, Padding = new Padding(12, 6, 12, 6) };
+            var backRow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, RightToLeft = RightToLeft.No };
+            backRow.Controls.Add(UiTheme.MakeBackButton(this));
+            backBar.Controls.Add(backRow);
+
+            Controls.Add(root);
+            Controls.Add(backBar);
 
             // Keyboard shortcuts: F2 checkout, Esc clears scan box.
             KeyPreview = true;

@@ -18,9 +18,9 @@ namespace VapeShopPos.Forms
 
             Text = "تفاصيل الوردية #" + shiftId;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(660, 600);
+            ClientSize = new Size(660, 680);
             FormBorderStyle = FormBorderStyle.Sizable;
-            MinimumSize = new Size(560, 500);
+            MinimumSize = new Size(560, 560);
             MaximizeBox = true;
             UiTheme.ApplyRtl(this);
 
@@ -44,7 +44,9 @@ namespace VapeShopPos.Forms
             decimal totalSales = ShiftService.GetShiftSalesTotal(sh.Id);
             decimal cardSales = totalSales - cashSales;
             int invoices = ShiftService.GetShiftInvoiceCount(sh.Id);
-            decimal expectedCash = sh.OpeningCash + cashSales;
+            decimal cashIn = CashMovementService.GetShiftTotal(sh.Id, true);
+            decimal cashOut = CashMovementService.GetShiftTotal(sh.Id, false);
+            decimal expectedCash = sh.OpeningCash + cashSales + cashIn - cashOut;
 
             bool isClosed = sh.ClosedAt.HasValue;
             string status = isClosed ? "مقفولة" : "مفتوحة";
@@ -74,7 +76,7 @@ namespace VapeShopPos.Forms
             var info = new Label
             {
                 AutoSize = false,
-                Size = new Size(w - 50, 250),
+                Size = new Size(w - 50, 320),
                 Location = new Point(25, 50),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 12F),
@@ -86,7 +88,9 @@ namespace VapeShopPos.Forms
                     "عدد الفواتير: " + invoices + "\n" +
                     "مبيعات نقدية: " + UiTheme.Money(cashSales) + "\n" +
                     "مبيعات بطاقة: " + UiTheme.Money(cardSales) + "\n" +
-                    "إجمالي المبيعات: " + UiTheme.Money(totalSales) + "\n\n" +
+                    "إجمالي المبيعات: " + UiTheme.Money(totalSales) + "\n" +
+                    "إيداعات على الدرج (خدمات): " + UiTheme.Money(cashIn) + "\n" +
+                    "سحوبات من الدرج (خدمات): " + UiTheme.Money(cashOut) + "\n\n" +
                     "النقدية المتوقعة في الدرج: " + UiTheme.Money(expectedCash) + "\n" +
                     "النقدية المعدودة: " + (sh.ClosingCash.HasValue ? UiTheme.Money(sh.ClosingCash.Value) : "—") + "\n" +
                     "الفرق: " + varianceText
@@ -100,14 +104,14 @@ namespace VapeShopPos.Forms
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Size = new Size(w - 50, 28),
-                Location = new Point(25, 305),
+                Location = new Point(25, 380),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
             var grid = new DataGridView
             {
-                Location = new Point(20, 340),
-                Size = new Size(body.ClientSize.Width - 65, body.ClientSize.Height - 340 - 25),
+                Location = new Point(25, 415),
+                Size = new Size(body.ClientSize.Width - 50, body.ClientSize.Height - 415 - 25),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 ReadOnly = true,
                 AllowUserToAddRows = false,

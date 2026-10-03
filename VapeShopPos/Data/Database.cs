@@ -143,6 +143,19 @@ CREATE TABLE IF NOT EXISTS stock_movements (
     FOREIGN KEY (user_id)    REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS cash_movements (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    datetime  TEXT NOT NULL,
+    direction TEXT NOT NULL,            -- 'in' = deposit to drawer, 'out' = withdraw from drawer
+    amount    REAL NOT NULL,
+    service   TEXT,
+    shift_id  INTEGER NOT NULL,
+    user_id   INTEGER NOT NULL,
+    FOREIGN KEY (shift_id) REFERENCES shifts(id),
+    FOREIGN KEY (user_id)  REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cash_shift        ON cash_movements(shift_id);
 CREATE INDEX IF NOT EXISTS idx_movements_product ON stock_movements(product_id);
 CREATE INDEX IF NOT EXISTS idx_items_invoice     ON invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_shift    ON invoices(shift_id);

@@ -90,7 +90,9 @@ namespace VapeShopPos.Forms
             decimal cashSales = ShiftService.GetShiftCashSalesTotal(sh.Id);
             decimal totalSales = ShiftService.GetShiftSalesTotal(sh.Id);
             int invoices = ShiftService.GetShiftInvoiceCount(sh.Id);
-            decimal expectedCash = sh.OpeningCash + cashSales;
+            decimal cashIn = CashMovementService.GetShiftTotal(sh.Id, true);
+            decimal cashOut = CashMovementService.GetShiftTotal(sh.Id, false);
+            decimal expectedCash = sh.OpeningCash + cashSales + cashIn - cashOut;
 
             int w = _body.ClientSize.Width;
 
@@ -120,7 +122,9 @@ namespace VapeShopPos.Forms
                     "عدد الفواتير: " + invoices + "\n" +
                     "مبيعات نقدية: " + UiTheme.Money(cashSales) + "\n" +
                     "مبيعات بطاقة: " + UiTheme.Money(totalSales - cashSales) + "\n" +
-                    "إجمالي المبيعات: " + UiTheme.Money(totalSales) + "\n\n" +
+                    "إجمالي المبيعات: " + UiTheme.Money(totalSales) + "\n" +
+                    "إيداعات على الدرج (خدمات): " + UiTheme.Money(cashIn) + "\n" +
+                    "سحوبات من الدرج (خدمات): " + UiTheme.Money(cashOut) + "\n\n" +
                     "النقدية المتوقعة في الدرج: " + UiTheme.Money(expectedCash)
             };
 
@@ -215,7 +219,7 @@ namespace VapeShopPos.Forms
                 if (sh.ClosedAt.HasValue && sh.ClosingCash.HasValue)
                 {
                     decimal cashSales = ShiftService.GetShiftCashSalesTotal(sh.Id);
-                    decimal expected = sh.OpeningCash + cashSales;
+                    decimal expected = sh.OpeningCash + cashSales + CashMovementService.GetShiftNet(sh.Id);
                     decimal d = sh.ClosingCash.Value - expected;
                     if (d == 0) diffText = "مطابقة ✓";
                     else diffText = (d > 0 ? "زيادة +" : "عجز ") + UiTheme.Money(Math.Abs(d));

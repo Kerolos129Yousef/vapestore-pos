@@ -60,6 +60,7 @@
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceItem.cs" />
     <Compile Include="Models\StockMovement.cs" />
+    <Compile Include="Models\CashMovement.cs" />
     <Compile Include="Services\PasswordHasher.cs" />
     <Compile Include="Services\Session.cs" />
     <Compile Include="Services\ProductService.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Services\StocktakeService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Services\InvoiceService.cs" />
+    <Compile Include="Services\CashMovementService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Services\BackupService.cs" />
     <Compile Include="Forms\UiTheme.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="Forms\ShiftDetailsForm.cs" />
     <Compile Include="Forms\InvoiceDetailsForm.cs" />
     <Compile Include="Forms\InvoicesForm.cs" />
+    <Compile Include="Forms\CashMovementForm.cs" />
     <Compile Include="Forms\StocktakeForm.cs" />
     <Compile Include="Forms\ReportsForm.cs" />
     <Compile Include="Forms\UsersForm.cs" />

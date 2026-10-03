@@ -21,6 +21,9 @@ namespace VapeShopPos.Forms
             public decimal LineTotal { get { return UnitPrice * Quantity; } }
         }
 
+        // Scan this special code to record a drawer cash movement (transfer services).
+        private const string DrawerBarcode = "DRAWER";
+
         private readonly List<CartLine> _cart = new List<CartLine>();
 
         private TextBox txtScan;
@@ -215,6 +218,15 @@ namespace VapeShopPos.Forms
 
             string text = txtScan.Text.Trim();
             if (text.Length == 0) return;
+
+            // Special drawer barcode: open the cash deposit/withdraw dialog.
+            if (string.Equals(text, DrawerBarcode, StringComparison.OrdinalIgnoreCase))
+            {
+                using (var f = new CashMovementForm()) f.ShowDialog(this);
+                txtScan.Clear();
+                txtScan.Focus();
+                return;
+            }
 
             // Try exact barcode first (the common scanner path), then name search.
             Product p = ProductService.GetProductByBarcode(text);
